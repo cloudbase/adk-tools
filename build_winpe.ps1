@@ -16,6 +16,7 @@ Param(
   [switch]$UseCrowbar,
   [string]$CrowbarAdminIP = "192.168.124.10",
   [string]$CrowbarFolder = "windows-6.2"
+  [string]$CrowbarArch = "x86_64"
 )
 
 # $built_for crowbar must be set to $true if the Windows PE target usage is 
@@ -85,10 +86,10 @@ if ($built_for_crowbar)
   # windows-6.2 for Windows Server 2012
   # hyperv-6.2 for Hyper-V Server 2012
   $crowbar_folder      = $CrowbarFolder
+  $crowbar_arch        = $CrowbarArch
   $crowbar_boot        = "boot"
   $crowbar_source      = "source"
   $crowbar_unattend    = "unattend"
-  $crowbar_extra       = "extra"
 }
 else
 {
@@ -188,7 +189,7 @@ if($built_for_crowbar)
 {
   Add-Content $startnet_cmd "`n powershell `"`$DHCPServers=@(gwmi Win32_NetworkAdapterConfiguration -Filter IPEnabled=True | where {`$_.DHCPServer -and !(`$_.DHCPServer -match `"^255`")}); if (`$DHCPServers) {`$DHCPServer=`$DHCPServers[0].DHCPServer} else {throw `"DHCP Server Not Found`"} ; Write-Host DHCPServer=`$DHCPServer ; net use $crowbar_mountpoint \\`$DHCPServer\$crowbar_share`""
   Add-Content $startnet_cmd "`n $crowbar_mountpoint\$crowbar_folder\$crowbar_source\setup.exe /noreboot /unattend:$crowbar_mountpoint\$crowbar_folder\$crowbar_unattend\unattended.xml"
-  Add-Content $startnet_cmd "`n copy $crowbar_mountpoint\$crowbar_folder\$crowbar_extra\set_state.ps1 \"
+  Add-Content $startnet_cmd "`n copy $crowbar_mountpoint\windows-common\$crowbar_arch\extra\set_state.ps1 \"
   Add-Content $startnet_cmd "`n powershell -ExecutionPolicy RemoteSigned \set_state.ps1"
   Add-Content $startnet_cmd "`n exit"
 }
